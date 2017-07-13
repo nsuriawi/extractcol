@@ -88,30 +88,5 @@ function lerp(range,pixData)
 	//return value;
 }
 
-var svg = d3.select('svg')
 
-var scale = d3.scale.linear()
-.domain([20, 30])
-.range([10, 450])
-
-var brush = d3.svg.brush()
-brush.x(scale)
-brush.extent([22, 28])
-
-brush.on('brushend', function() {
-  console.log(brush.extent())
-})
-
-var g = svg.append('g')
-
-brush(g)
-
-g.attr('transform', 'translate(50, 50)')
-g.selectAll('rect').attr('height', 30)
-g.selectAll('.background')
-  .style({ fill: '#4b9e9e', visibility: 'visible' })
-g.selectAll('.extent')
-  .style({ fill: '#78c5c5', visibility: 'visible' })
-g.selectAll('.resize rect')
-  .style({ fill: '#276c86', visibility: 'visible' })
 

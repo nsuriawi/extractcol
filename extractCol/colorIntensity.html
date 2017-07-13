@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script type="text/javascript" src="http://gc.kis.v2.scr.kaspersky-labs.com/CE9B22B1-5159-AF4C-A0D0-1AE3F4F3DE8C/main.js" charset="UTF-8"></script><script src="http://d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript" src="http://gc.kis.v2.scr.kaspersky-labs.com/CE9B22B1-5159-AF4C-A0D0-1AE3F4F3DE8C/main.js" charset="UTF-8"></script><script src="https://d3js.org/d3.v4.min.js"></script>
 <style>
 body {
   font: 10px sans-serif;
@@ -51,21 +51,37 @@ function load() {
       data   = [],
 
       brushsize = 6,
-      x = d3.scale.linear().range([0, width - brushsize]),
-      y = d3.scale.linear().range([brushsize, height - brushsize]),
+      x = d3.scaleLinear().range([0, width - brushsize]),
+      y = d3.scaleLinear().range([brushsize, height - brushsize]),
 
-      rgb = d3.scale.ordinal().domain(d3.range(3)).range(["red", "green", "blue"]),
-      xH = d3.scale.linear().domain([0, 255]).range([0, width]),
-      yH = d3.scale.linear().range([0, height / 4]);
+      rgb = d3.scaleOrdinal().domain(d3.range(3)).range(["red", "green", "blue"]),
+      xH = d3.scaleLinear().domain([0, 255]).range([0, width]),
+      yH = d3.scaleLinear().range([0, height / 4]);
+	  //console.log(data);
 
   var svg, canvas, histo;
 
   var empty = Array(256);
   for (var i = 0; i < 256; i++) { empty[i] = 0; }
 
+  function extract(extent, context){
+	var x = width  *  extent[0,0],
+        y = height *  extent[0,1],
+        w = width  * (extent[1,0] - extent[0,0]),
+        h = height * (extent[1,1] - extent[0,1]);
+		//tmp = context.getImageData(x,y,w,h).data;
+		console.log(extent);
+		console.log(extent[0]);
+		console.log(extent[0],[0]);
+		console.log(x,y,w,h);
+  }
+  
   function brushmove() {
     canvas.each(function() {
       //data = histogram(brush.extent(), this.context);
+	  console.log(this.context);
+	  data = extract(brush.extent(), this.context);
+	  console.log(data);
       redraw();
     });
   }
@@ -78,23 +94,24 @@ function load() {
       .attr("fill", function(d, i) { return rgb(i); })
       .attr("stroke", function(d, i) { return rgb(i); });
     redraw();
+	console.log(rgb);
   }
 
   function redraw() {
-    histo.data(data).attr("d", area);
+    //histo.data(data).attr("d", area);
   }
 
-  var area = d3.svg.area()
+  var area = d3.area()
     .x(function(d, i) { return xH(i); })
     .y0(height)
     .y1(function(d) { return height - yH(d); })
-    .interpolate("basis");
+    d3.interpolate("basis");
 
-  var brush = d3.svg.brush()
-    .x(x)
-    .y(y)
-    .extent([[.4, .4],[.6, .6]])
-    .on("brush", brushmove);
+  var brush = d3.brush()
+    d3.brushX(x)
+    d3.brushY(y)
+    d3.extent([[.4, .4],[.6, .6]])
+    brush.on("brush", brushmove);
 
   svg = d3.select("#main")
     .append("svg")
@@ -120,7 +137,7 @@ function load() {
 
 document.addEventListener('DOMContentLoaded', function() {
   var image = new Image();
-  image.src = 'l.jpg';
+  image.src = 'i.png';
   image.addEventListener("load", load);
 });
 </script>
