@@ -57,7 +57,7 @@ function load() {
       rgb = d3.scaleOrdinal().domain(d3.range(3)).range(["red", "green", "blue"]),
       xH = d3.scaleLinear().domain([0, 255]).range([0, width]),
       yH = d3.scaleLinear().range([0, height / 4]);
-	  //console.log(data);
+	  
 
   var svg, canvas, histo;
 
@@ -70,16 +70,19 @@ function load() {
         w = width  * (extent[1,0] - extent[0,0]),
         h = height * (extent[1,1] - extent[0,1]);
 		//tmp = context.getImageData(x,y,w,h).data;
-		console.log(extent);
+		console.log(extent, context);
+		console.log(width, height);
 		console.log(extent[0]);
-		console.log(extent[0],[0]);
+		console.log(extent[[0],[0]]);
+		console.log(width * extent[0,0]);
 		console.log(x,y,w,h);
+		console.log(context.getImageData(x,y,w,h));
   }
   
   function brushmove() {
     canvas.each(function() {
       //data = histogram(brush.extent(), this.context);
-	  console.log(this.context);
+	  //console.log(this.context);
 	  data = extract(brush.extent(), this.context);
 	  console.log(data);
       redraw();
@@ -87,6 +90,7 @@ function load() {
   }
 
   function draw() {
+	console.log(rgb);
     histo = svg.selectAll(".histo")
       .data(data).enter()
       .append("path")
