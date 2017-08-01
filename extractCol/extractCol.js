@@ -45,7 +45,7 @@ function convertNum(pixelData)
 	return t;
 }
 
-
+/**
 var example = document.getElementById('example');
 var context = example.getContext('2d');
 
@@ -61,7 +61,7 @@ function displayImg()
 	console.log("image exists");
   }
 } 
-
+*/
 $('#example').mousemove(function(e) {
     var pos = findPos(this);
     var x = e.pageX - pos.x;
