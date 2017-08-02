@@ -5,13 +5,13 @@ var canvas = document.querySelector("canvas"),
     width = canvas.width,
     height = canvas.height;
 
-var histowidth = width,
-    histoheight = width / 2;
+/* var histowidth = width,
+    histoheight = width / 2; */
 
-var x = d3.scaleLinear().domain([0, 256]).rangeRound([0, histowidth]),
-    y = d3.scaleLinear().rangeRound([0, histoheight]);
+/* var x = d3.scaleLinear().domain([0, 256]).rangeRound([0, histowidth]),
+    y = d3.scaleLinear().rangeRound([0, histoheight]); */
 
-var r = new Array(257),
+/* var r = new Array(257),
     g = new Array(257),
     b = new Array(257);
 
@@ -25,14 +25,14 @@ var line = d3.line()
     .curve(curveStepBelow)
     .x(function(d, i) { return x(i); })
     .y(y);
-
+ */
 var brush = d3.brush()
     .on("start brush", brushed)
     .on("end", brushended);
 
 var svg = d3.select("svg");
 
-var histogram = svg.append("g")
+/* var histogram = svg.append("g")
     .attr("class", "histogram");
 
 var histoarea = histogram.selectAll(".histogram-area")
@@ -43,7 +43,7 @@ var histoarea = histogram.selectAll(".histogram-area")
 var histoline = histogram.selectAll(".histogram-line")
     .data([r, g, b])
   .enter().append("path")
-    .attr("class", function(d, i) { return "histogram-line histogram-" + "rgb"[i]; });
+    .attr("class", function(d, i) { return "histogram-line histogram-" + "rgb"[i]; }); */
 
 var image = new Image;
 image.src = "i.png";
@@ -68,45 +68,47 @@ function brushed() {
       max = 0;
   //checking whether bar is longer vertically or horizontally
   if(dx>=dy){horiz = true;}else{horiz =false;}		
-  console.log("dx: ", dx, ", dy: ", dy);
+  console.log("dx: ", dx, " dy: ", dy);
   
 
-  for (var i = 0; i < 257; ++i) {
+  /* for (var i = 0; i < 257; ++i) {
     r[i] = g[i] = b[i] = 0;
-  }
+  } */
 
   if (dx && dy) {
 	//data for the "extent" in brush
     var data = context.getImageData(x0, y0, dx, dy).data;			
     //console.log("new data:", data);
-	for (var i = 0; i < dx; ++i) {
+	/* for (var i = 0; i < dx; ++i) {
       for (var j = 0; j < dy; ++j) {
         var k = j * dx + i << 2;
         max = Math.max(max, ++r[data[k]], ++g[data[k + 1]], ++b[data[k + 2]]);
       }
     }
-    y.domain([0, max]);
-	//console.log("k: ", k, ", max: ", max );
+    y.domain([0, max]); */
+	
 	console.log(data.length);
-	reorder(dx, dy, data,0,0);
-	/**for(var i = 0;i<data.length-3;i+=4){
-		//color data represented in data var as [r1,g1,b1,a1,r2,g2,b2,a2,...r#,g#,b#,a#]
-		console.log("r: ", data[i], " g: ",data[i+1], " b: ",data[i+2]);	
-	}*/
-	//data[0]
-    histoarea.attr("d", area);
+	var roundx = Math.floor(dx),
+		roundy = Math.floor(dy);
+	var pixa = reorder(roundx, roundy, data);
+	
+	//placeholder for user value
+	var cursor = Colors(255,32,32,255);
+	searchArray(roundx,roundy,pixa,cursor);
+  }
+    /* histoarea.attr("d", area);
     histoline.attr("d", line);
   } else {
     histoarea.attr("d", null);
     histoline.attr("d", null);
-  }
+  } */
 }
 
 function brushended() {
   if (!d3.event.selection) {
 	console.log("prompt appears here");
-    histoarea.attr("d", null);
-    histoline.attr("d", null);
+    /* histoarea.attr("d", null);
+    histoline.attr("d", null); */
   }
 }
 
@@ -150,23 +152,46 @@ var Colors = function(red,green,blue,alpha){
 	};	
 };
 
+function searchArray(dx, dy, pixa, cursor){
+//Searching array for cursor specific pixel
+	var t0 = performance.now();
+	
+	for(var i=0;i<dx;i++)
+	{
+		for(var j=0;j<dy;j++)
+		{
+			if (JSON.stringify(cursor) === JSON.stringify(pixa[i][j]))
+			{
+				console.log("found it!");
+				break;
+			}
+		}
+	}
+	var t1 = performance.now();
+	console.log("Call to searchArray took " + (t1 - t0) + " milliseconds.")
+}
+
 //two dimensional array: [dx,dy] = RGBA values (make an object)
-function reorder(dx,dy,data,min,max) {
+function reorder(dx,dy,data) {
 	var data = data;
 	var pixa = [];//[[],[]];
 	var row = 4 * dx;
-	
+	console.log("dx,dy: ", dx, dy);
+	/* var dx = Math.floor(dx), 
+		dy = Math.floor(dy); */
+		
 	//0-149 in sample
-	for(i=0;i<dx;i++){ 
+	for(var i=0;i<dx;i++){ 
 		pixa[i] = [];
-		for(j=0;j<dy;j++){
+		for(var j=0;j<dy;j++){
 			var n = 4*i;
 			//console.log(data);
 			pixa[i][j] = Colors(data[(j*dx*4) + n],data[(j*dx*4) + n+1],data[(j*dx*4) + n+2],data[(j*dx*4) + n+3]);
 		}
 	}
-	console.log(pixa[149][29]);
-	console.log(pixa[149][29]);
+	console.log(pixa[0][0]);
+	console.log(pixa[dx-1][dy-1]);
+	return pixa;
 	/**
 	if(horiz){
 		for(i=0;i<data-3;i+=3){
