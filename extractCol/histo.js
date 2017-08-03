@@ -9,6 +9,7 @@ var brush = d3.brush()
     .on("start brush", brushed)
     .on("end", brushended);
 
+	
 var svg = d3.select("svg");
 
 var image = new Image;
@@ -52,25 +53,13 @@ function brushed() {
   }
 }
 
-function brushended() {
-  if (!d3.event.selection) {
+function brushended(){ 
 	console.log("prompt appears here");
+  //if (!d3.event.selection) {
+	//console.log("prompt appears here");
     /* histoarea.attr("d", null);
     histoline.attr("d", null); */
-  }
-}
-
-function curveStepBelow(context) {
-  var y0, i;
-  return {
-    lineStart: function() { y0 = NaN, i = 0; },
-    lineEnd: function() {},
-    point: function(x, y) {
-      x -= y0 < y ? -0.5 : +0.5, y += 0.5;
-      if (++i === 1) context.moveTo(x, y0 = y);
-      else context.lineTo(x, y0), context.lineTo(x, y0 = y);
-    }
-  };
+ // }
 }
 
 /**function barScaling(dx,dy, data) {
@@ -122,10 +111,10 @@ function searchArray(dx, dy, pixa, cursor){
 //two dimensional array: [dx,dy] = RGBA values (make an object)
 function reorder(dx,dy,data) {
 	var data = data;
-	var pixa = [];//[[],[]];
+	var pixa = [];
 	var row = 4 * dx;
-	//console.log("dx,dy: ", dx, dy);
-		
+
+	/**	original horizontal reordering
 	//0-149 in sample
 	for(var i=0;i<dx;i++){ 
 		pixa[i] = [];
@@ -137,20 +126,29 @@ function reorder(dx,dy,data) {
 	}
 	//console.log(pixa[0][0]);
 	//console.log(pixa[dx-1][dy-1]);
-	return pixa;
-	/**
+	return pixa;*/
+	
 	if(horiz){
-		for(i=0;i<data-3;i+=3){
-			for(j=0;j<dy;j++){
-				
-				if(i%dx===0)	//need to mod 'i' to check which 
-				if()
+		//0-149 in sample
+		for(var i=0;i<dx;i++){ 
+			pixa[i] = [];
+			for(var j=0;j<dy;j++){
+				var n = 4*i;
+				pixa[i][j] = Colors(data[(j*dx*4) + n],data[(j*dx*4) + n+1],data[(j*dx*4) + n+2],data[(j*dx*4) + n+3]);
 			}
 		}
+		return pixa;
 	}
 	if(!horiz){
-		console.log("beep boop");
-	}*/
+		for(var i=0;i<dy;i++){ 
+			pixa[i] = [];
+			for(var j=0;j<dx;j++){
+				var n = 4*i;
+				pixa[i][j] = Colors(data[(j*dy*4) + n],data[(j*dy*4) + n+1],data[(j*dy*4) + n+2],data[(j*dy*4) + n+3]);
+			}
+		}
+		return pixa;
+	}
 }
 
 
