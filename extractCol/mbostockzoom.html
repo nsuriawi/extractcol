@@ -34,9 +34,79 @@ svg {
 }
 
 </style>
-<canvas width="960" height="1452"></canvas>
-<svg width="960" height="1452"></svg>
+
+<body>
+	<canvas id = "example" width="800" height="1000"></canvas>
+	<svg id = "overlay" width="800" height="1000"></svg>
+  </div>
+  <div id = "color-block" style = "height:150px;width:150px;float:right;border-radius:50%; text-align: center;">
+    <h3>Color Information</h3>
+    <span id = "color-hex">Color</span><br/>
+    <span id = "color-value">Value</span><br/>
+  </div>
+  
+</body>
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="picoModal-3.0.0.min.js"></script>
 <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/CE9B22B1-5159-AF4C-A0D0-1AE3F4F3DE8C/main.js" charset="UTF-8"></script><script src="https://d3js.org/d3.v4.min.js"></script>
+<script type="text/javascript" src="nearestColor.js"></script>
 <script type="text/javascript" src="histo.js"></script>
+<script>
+var nearest = nearestColor;
+var colorRef;
+
+function findPos(obj) {
+    var curleft = 0, curtop = 0;
+    if (obj.offsetParent) {
+        do {
+            curleft += obj.offsetLeft;
+            curtop += obj.offsetTop;
+        } while (obj = obj.offsetParent);
+        return { x: curleft, y: curtop };
+    }
+    return undefined;
+}
+/**
+function rgbToHex(r, g, b) {
+    if (r > 255 || g > 255 || b > 255)
+        throw "Invalid color component";
+    return ((r << 16) | (g << 8) | b).toString(16);
+}
+
+$('#example').click(function(e) {
+    var pos = findPos(this);
+    var x = e.pageX - pos.x;
+    var y = e.pageY - pos.y;
+    var coord = "x=" + x + ", y=" + y;
+    var c = this.getContext('2d');
+    var p = c.getImageData(x, y, 1, 1).data;
+	var t = convertNum(p);	
+	//setter(p);
+    var hex = "#" + ("000000" + rgbToHex(p[0], p[1], p[2])).slice(-6);
+    $('#status').html(coord + "<br>" + hex + "<br>" + t);
+	
+});
+*/
+	
+
+  svg.on("click", function() {
+      var pos = findPos(canvas);
+      var x = d3.event.pageX - pos.x;
+      var y = d3.event.pageY - pos.y;
+      var coord = "x=" + x + ", y=" + y;
+      var p = context.getImageData(x, y, 1, 1).data; 
+      var hex = "#" + ("000000" + rgbToHex(p[0], p[1], p[2])).slice(-6);
+      console.log([coord,hex].join(" "));
+	  console.log(colorRef[nearest(hex)]);
+      console.log([nearest(hex),colorRef[nearest(hex)]].join(":"))
+      d3.select("#color-block")
+        .style("background-color",hex);
+      d3.select("#color-value")
+        .text(colorRef[nearest(hex)])
+      d3.select("#color-hex")
+        .text(hex)
+  });
+  
+	
+</script>
 <!--script type="text/javascript" src="extractCol.js"></script-->

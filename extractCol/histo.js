@@ -1,4 +1,5 @@
-var horiz = true;
+var horiz = true,
+	bar   = false; //no color bar is selected to start
 
 var canvas = document.querySelector("canvas"),
     context = canvas.getContext("2d"),
@@ -12,8 +13,11 @@ var brush = d3.brush()
 	
 var svg = d3.select("svg");
 
+var colorScale = d3.scaleLinear()
+    .domain([0,1]);
+
 var image = new Image;
-image.src = "i.png";
+image.src = "i2.png";
 image.onload = loaded;
 
 function loaded() {
@@ -22,11 +26,10 @@ function loaded() {
   svg.append("g")
       .attr("class", "brush")
       .call(brush)
-      .call(brush.move, [[300, 130], [450, 160]]);
+      //.call(brush.move, [[300, 130], [450, 160]]);
 }
 //Selection of area brushed (replacement of extent in previous d3 iteration)
 function brushed() {			
-  //console.log("new selection");
   var s = d3.event.selection,
       x0 = s[0][0],
       y0 = s[0][1],
@@ -46,6 +49,8 @@ function brushed() {
 	var roundx = Math.floor(dx),
 		roundy = Math.floor(dy);
 	var pixa = reorder(roundx, roundy, data);
+	//console.log(colorScale.range);
+	
 	
 	//placeholder for user value
 	var cursor = Colors(255,32,32,255);
@@ -53,40 +58,48 @@ function brushed() {
   }
 }
 
-function brushended(){ 
-	console.log("prompt appears here");
-  //if (!d3.event.selection) {
-	//console.log("prompt appears here");
-    /* histoarea.attr("d", null);
-    histoline.attr("d", null); */
- // }
+function brushended(){
+	if(bar == false){
+		console.log("prompt appears here");
+		 var pMod = picoModal([
+		  "<h1>Adjust Scale Below</h1>",
+		  "Scale Min:<div id='scale_min' contentEditable='true'>" +
+			  ((document.getElementById("scale_min")) ? document.getElementById("scale_min").textContent : 0) + "</div>",
+		  "Scale Max:<div id='scale_max' contentEditable='true'>" +
+			  ((document.getElementById("scale_max")) ? document.getElementById("scale_max").textContent : 1) + "</div>"
+		].join("\n"))
+		  .beforeClose(function(modal){
+			colorScale.domain([
+			  parseFloat(modal.modalElem().childNodes[2].textContent),
+			  parseFloat(modal.modalElem().childNodes[4].textContent)
+			])
+			document.getElementById("scale_min").innerText = colorScale.domain()[0]
+			document.getElementById("scale_max").innerText = colorScale.domain()[1]
+		  })
+		  /**.afterClose(function(modal){
+			updateColorScale(brush.extent());
+		  })*/
+		  .show()
+		  bar = true;
+	}
 }
 
-/**function barScaling(dx,dy, data) {
-	if(horiz){
-		console.log("horizontal is ", horiz);
-		
-		//generates a list of vertical pixels along the x-axis
-		var n = 2;
-		var pixa = [];
-		for(var i = 0;i<dy;i++){
-			for(var j = 0;j<4;j++){
-				var tmp = data[4*((i*dx)+n)+j];
-				pixa.push(tmp);
-			}
-		}
-		console.log("pixa: ", pixa);
-		
-	}
+/*var Colors = function(red,green,blue){//,alpha){
+	this.red = red;
+	this.green = green;
+	this.blue = blue;
+		//"alpha" : alpha
 }*/
 
-var Colors = function(red,green,blue,alpha){
+
+var Colors = function(red,green,blue){//,alpha){
 	return{
 		"red" : red,
 		"green" : green,
 		"blue" : blue,
-		"alpha" : alpha
-	};	
+		//"alpha" : alpha
+	};
+
 };
 
 function searchArray(dx, dy, pixa, cursor){
@@ -111,22 +124,11 @@ function searchArray(dx, dy, pixa, cursor){
 //two dimensional array: [dx,dy] = RGBA values (make an object)
 function reorder(dx,dy,data) {
 	var data = data;
+	colorRef = {};
 	var pixa = [];
+	var oneD =[];
 	var row = 4 * dx;
-
-	/**	original horizontal reordering
-	//0-149 in sample
-	for(var i=0;i<dx;i++){ 
-		pixa[i] = [];
-		for(var j=0;j<dy;j++){
-			var n = 4*i;
-			//console.log(data);
-			pixa[i][j] = Colors(data[(j*dx*4) + n],data[(j*dx*4) + n+1],data[(j*dx*4) + n+2],data[(j*dx*4) + n+3]);
-		}
-	}
-	//console.log(pixa[0][0]);
-	//console.log(pixa[dx-1][dy-1]);
-	return pixa;*/
+	console.log(colorScale.domain()[0], ", ", colorScale.domain()[1]);
 	
 	if(horiz){
 		//0-149 in sample
@@ -134,8 +136,36 @@ function reorder(dx,dy,data) {
 			pixa[i] = [];
 			for(var j=0;j<dy;j++){
 				var n = 4*i;
-				pixa[i][j] = Colors(data[(j*dx*4) + n],data[(j*dx*4) + n+1],data[(j*dx*4) + n+2],data[(j*dx*4) + n+3]);
+				pixa[i][j] = Colors(data[(j*dx*4) + n],data[(j*dx*4) + n+1],data[(j*dx*4) + n+2]);//,data[(j*dx*4) + n+3]);
 			}
+		}
+		//console.log(pixa);
+		//oneD is a single row selected to make searchArray faster
+		if(bar == false){
+			var half = Math.floor(dy/2)
+			var colorRange = [];
+			var colorDomain = [];
+				for(var i=0;i<dx;i++){
+					var p =  pixa[i][half];
+					var hex = "#" + ("000000" + rgbToHex(p["red"], p["green"], p["blue"])).slice(-6);
+					colorDomain.push(colorScale.domain()[0]+((colorScale.domain()[1]-colorScale.domain()[0])/dx * i));
+					colorRange.push(hex);
+					oneD.push(pixa[i][half]);
+				}
+			colorScale.range(colorRange).domain(colorDomain);
+			console.log(colorDomain);
+			console.log(colorRange);
+			//colorScale.range(colorRange);
+			colorRange.forEach(function(d,i){
+				colorRef[d] = colorDomain[i];
+			})
+			if( colorRange.length > 2 ){
+				nearest = nearestColor.from( colorRange );
+			}
+			
+			console.log(colorScale(0.1));
+			return oneD;
+			
 		}
 		return pixa;
 	}
@@ -144,14 +174,118 @@ function reorder(dx,dy,data) {
 			pixa[i] = [];
 			for(var j=0;j<dx;j++){
 				var n = 4*i;
-				pixa[i][j] = Colors(data[(j*dy*4) + n],data[(j*dy*4) + n+1],data[(j*dy*4) + n+2],data[(j*dy*4) + n+3]);
+				pixa[i][j] = Colors(data[(j*dy*4) + n],data[(j*dy*4) + n+1],data[(j*dy*4) + n+2]);//,data[(j*dy*4) + n+3]);
 			}
+		}
+		if(bar == false){
+			var half = Math.floor(dx/2)
+			var colorRange = [];
+			console.log(pixa);
+			//console.log(pixa[half][0]["red"]);
+				for(var i=0;i<dy;i++){
+					var p =  pixa[half][i]; //fix this line
+					console.log(p);
+					var hex = "#" + ("000000" + rgbToHex(p["red"], p["green"], p["blue"])).slice(-6);
+					console.log(hex);
+					colorRange.push(hex);
+					oneD.push(pixa[half][i]);
+				}
+			console.log(colorRange);
+			colorScale.range(colorRange);
+			/**colorRange.forEach(function(d,i){
+				colorRef[d] = colorDomain[i];
+			})*/
+			//colorScale.invert(ff2020);
+			return oneD;
 		}
 		return pixa;
 	}
 }
 
+function rgbToHex(r, g, b) {
+    if (r > 255 || g > 255 || b > 255)
+        throw "Invalid color component";
+    return ((r << 16) | (g << 8) | b).toString(16);
+}
 
+/**click to identify RGB value
+
+function convertNum(pixelData)
+{
+	var redRange = [255,0],
+		redCol = pixelData[0],
+		blueRange = [255,0],
+		blueCol = pixelData[2]
+		var t = 0;
+		
+	
+	if(pixelData[0] === 255 && pixelData[1] === 255 && pixelData[2] === 255){
+		//console.log("White");
+		t = 0;
+	}
+	if(pixelData[0] === 255 && pixelData[1] < 255 && pixelData[2] < 255){
+		//console.log("Red");
+		t = lerp(blueRange, blueCol);
+		t = t * -.25;
+	}
+	if(pixelData[0] < 255 && pixelData[1] < 255 && pixelData[2] === 255){
+		//console.log("Blue");
+		t = lerp(redRange, redCol);
+		t = t * .25;
+	}
+	return t;
+}
+
+function findPos(obj) {
+    var curleft = 0, curtop = 0;
+    if (obj.offsetParent) {
+        do {
+            curleft += obj.offsetLeft;
+            curtop += obj.offsetTop;
+        } while (obj = obj.offsetParent);
+        return { x: curleft, y: curtop };
+    }
+    return undefined;
+}
+/**
+function rgbToHex(r, g, b) {
+    if (r > 255 || g > 255 || b > 255)
+        throw "Invalid color component";
+    return ((r << 16) | (g << 8) | b).toString(16);
+}
+
+$('#example').click(function(e) {
+    var pos = findPos(this);
+    var x = e.pageX - pos.x;
+    var y = e.pageY - pos.y;
+    var coord = "x=" + x + ", y=" + y;
+    var c = this.getContext('2d');
+    var p = c.getImageData(x, y, 1, 1).data;
+	var t = convertNum(p);	
+	//setter(p);
+    var hex = "#" + ("000000" + rgbToHex(p[0], p[1], p[2])).slice(-6);
+    $('#status').html(coord + "<br>" + hex + "<br>" + t);
+	
+});
+*/
+/**
+  svg.on("mousemove", function() {
+      var pos = findPos(canvas);
+      var x = d3.event.pageX - pos.x;
+      var y = d3.event.pageY - pos.y;
+      var coord = "x=" + x + ", y=" + y;
+      var p = context.getImageData(x, y, 1, 1).data; 
+      var hex = "#" + ("000000" + rgbToHex(p[0], p[1], p[2])).slice(-6);
+      console.log([coord,hex].join(" "));
+      console.log([nearest(hex),colorRef[nearest(hex)]].join(":"))
+      d3.select("#color-block")
+        .style("background-color",hex);
+      d3.select("#color-value")
+        .text(colorRef[nearest(hex)])
+      d3.select("#color-hex")
+        .text(hex)
+  });
+  */
 
 
 
