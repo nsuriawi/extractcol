@@ -76,9 +76,9 @@ function brushended(){
 			document.getElementById("scale_min").innerText = colorScale.domain()[0]
 			document.getElementById("scale_max").innerText = colorScale.domain()[1]
 		  })
-		  /**.afterClose(function(modal){
-			updateColorScale(brush.extent());
-		  })*/
+		  .afterClose(function(modal){
+			//updateColorScale(brush.extent());
+		  })
 		  .show()
 		  bar = true;
 	}
@@ -128,7 +128,7 @@ function reorder(dx,dy,data) {
 	var pixa = [];
 	var oneD =[];
 	var row = 4 * dx;
-	console.log(colorScale.domain()[0], ", ", colorScale.domain()[1]);
+	console.log(colorScale.domain()[0],", ", colorScale.domain()[1]);
 	
 	if(horiz){
 		//0-149 in sample
@@ -153,7 +153,7 @@ function reorder(dx,dy,data) {
 					oneD.push(pixa[i][half]);
 				}
 			colorScale.range(colorRange).domain(colorDomain);
-			console.log(colorDomain);
+			console.log("Domain: ", colorDomain);
 			console.log(colorRange);
 			//colorScale.range(colorRange);
 			colorRange.forEach(function(d,i){
@@ -180,22 +180,29 @@ function reorder(dx,dy,data) {
 		if(bar == false){
 			var half = Math.floor(dx/2)
 			var colorRange = [];
-			console.log(pixa);
-			//console.log(pixa[half][0]["red"]);
+			var colorDomain = [];
+			//console.log(pixa); pixa seems to be fine, so p is being improperly chosen
 				for(var i=0;i<dy;i++){
 					var p =  pixa[half][i]; //fix this line
 					console.log(p);
 					var hex = "#" + ("000000" + rgbToHex(p["red"], p["green"], p["blue"])).slice(-6);
+					colorDomain.push(colorScale.domain()[0]+((colorScale.domain()[1]-colorScale.domain()[0])/dx * i));
 					console.log(hex);
 					colorRange.push(hex);
 					oneD.push(pixa[half][i]);
 				}
+			console.log(oneD);
 			console.log(colorRange);
-			colorScale.range(colorRange);
-			/**colorRange.forEach(function(d,i){
+			colorScale.range(colorRange).domain(colorDomain);
+			
+			colorRange.forEach(function(d,i){
 				colorRef[d] = colorDomain[i];
-			})*/
-			//colorScale.invert(ff2020);
+			})
+			if( colorRange.length > 2 ){
+				nearest = nearestColor.from( colorRange );
+			}
+			
+			console.log(colorScale(0.1));
 			return oneD;
 		}
 		return pixa;
