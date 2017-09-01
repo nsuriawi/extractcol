@@ -1,7 +1,19 @@
+Host local server and select colorExtractor.html
+
+Select the bar area with your mouse
+A prompt should appear and ask you what domain you would like to define
+Fill those in and hit the 'x' or 'esc' or click out of the box
+Clicking anywhere on the canvas should return the nearest value in the top right, the display is binded to the the window box not canvas.
+
+As of now, the only way to reselect bars is to refresh the page
+
+
+
 Relevant files:
   colorExtractor.html
   histor.js
   nearesColor.js
+  picoModal-3.0.0.min.js
 
 
 
@@ -10,11 +22,6 @@ Sources and help:
   http://bl.ocks.org/jinroh/4666920
   https://github.com/dtao/nearest-color
   https://github.com/Nycto/PicoModal
-
-
-
-
-
 
 
 

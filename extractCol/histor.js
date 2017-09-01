@@ -33,8 +33,9 @@ function loaded() {
 function brushed() {	
 	s = d3.event.selection;
 }
-
+//Signifies end of brush selection
 function brushended(){
+	//if bar is false (color bar not selected yet), pico modal will pop up allowing user to specify domain for the color range.
 	if(bar == false){
 		console.log("prompt appears here");
 		 var pMod = picoModal([
@@ -61,7 +62,6 @@ function brushended(){
 			colorScale.domain[0] = d1;
 			colorScale.domain[1] = d2;
 			console.log("The domain ending with: ", colorScale.domain[0],", ", colorScale.domain[1]);
-			  //var s = d3.event.selection,
 			var	  x0 = s[0][0],
 				  y0 = s[0][1],
 				  dx = s[1][0] - x0,
@@ -90,6 +90,9 @@ function brushended(){
 		  .show()
 	}
 	//Another method would be created and used to store color values when using brush the second time.
+	else{
+		console.log("selection ought to store this data");
+	}
 }
 
 
@@ -164,7 +167,7 @@ function reorder(dx,dy,data) {
 				nearest = nearestColor.from( colorRange );
 			}
 			
-			console.log(colorScale(0.1));
+			//console.log(colorScale(0.1));
 			bar = true;
 			return oneD;
 			
@@ -184,7 +187,7 @@ function reorder(dx,dy,data) {
 			var half = Math.floor(dx/2)
 			var colorRange = [];
 			var colorDomain = [];
-			//console.log(pixa); pixa seems to be fine, so p is being improperly chosen
+			console.log(pixa); //pixa seems to be fine, so p is being improperly chosen
 				for(var i=0;i<dy;i++){
 					var p =  pixa[half][i]; //fix this line
 					console.log(p);
@@ -205,7 +208,8 @@ function reorder(dx,dy,data) {
 				nearest = nearestColor.from( colorRange );
 			}
 			
-			console.log(colorScale(0.1));
+			//console.log(colorScale(0.1));
+			bar = true;
 			return oneD;
 		}
 		return pixa;
